@@ -8,11 +8,12 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.rapidata.R
 import com.rapidata.box.LoadingState
+import com.rapidata.ui.apputils.GenericAppAdapter
 import com.rapidata.ui.bindingmodel.BindingInterface
 import com.rapidata.ui.bindingmodel.SearchBindingModel
-import com.rapidata.ui.apputils.GenericAppAdapter
 import kotlinx.android.synthetic.main.search_fragment.*
 import org.koin.android.viewmodel.ext.android.viewModel
 
@@ -25,6 +26,9 @@ class SearchFragment : Fragment() {
     private val searchViewModel by viewModel<SearchViewModel>()
     private lateinit var appAdapter: GenericAppAdapter<BindingInterface>
     private val searchValueList = mutableListOf<SearchBindingModel>()
+    private lateinit var scrollListener: RecyclerView.OnScrollListener
+    private lateinit var linearLayoutManager: LinearLayoutManager
+    private var lastVisibleItemPosition: Int = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,9 +66,29 @@ class SearchFragment : Fragment() {
     private fun initView() {
         rvSearch.apply {
             appAdapter = GenericAppAdapter<BindingInterface>(searchValueList)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+            linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+            layoutManager = linearLayoutManager
             hasFixedSize()
             adapter = appAdapter
+            setRecyclerViewScrollListener()
         }
+
+        btnSearch.setOnClickListener {
+            searchViewModel.fetchSearchData(0, edit_query.text.toString())
+        }
+    }
+
+    private fun setRecyclerViewScrollListener() {
+        scrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(rvSearch, newState)
+                lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition()
+                val totalItemCount = recyclerView.layoutManager?.itemCount
+                if (totalItemCount == lastVisibleItemPosition + 1) {
+                    searchViewModel.fetchSearchData(1, edit_query.text.toString())
+                }
+            }
+        }
+        rvSearch.addOnScrollListener(scrollListener)
     }
 }

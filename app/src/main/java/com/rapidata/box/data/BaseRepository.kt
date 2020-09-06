@@ -9,10 +9,11 @@ class BaseRepository(private val searchApi: SearchApi, private val searchDao: Se
 
     val searchResultData = searchDao.findAll()
 
-    suspend fun refresh() {
+    suspend fun refresh(pageNumber: Int, searchText: String) {
         withContext(Dispatchers.IO) {
-            val searchResult = searchApi.getSearchImgAsync().await()
-            searchDao.updateAll(searchResult.value)
+            val searchResult = searchApi.getSearchImgAsync(pageNumber, searchText).await()
+            if (pageNumber == 1) searchDao.updateAll(searchResult = searchResult.value)
+            else searchDao.add(searchResult.value)
         }
     }
 }
