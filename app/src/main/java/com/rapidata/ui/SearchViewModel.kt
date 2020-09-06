@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rapidata.box.BaseRepository
+import com.rapidata.box.data.BaseRepository
 import com.rapidata.box.LoadingState
 import kotlinx.coroutines.launch
 

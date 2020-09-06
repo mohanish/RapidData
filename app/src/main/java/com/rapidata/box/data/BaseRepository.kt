@@ -1,4 +1,4 @@
-package com.rapidata.box
+package com.rapidata.box.data
 
 import com.rapidata.box.database.SearchDao
 import com.rapidata.box.network.SearchApi
@@ -11,8 +11,8 @@ class BaseRepository(private val searchApi: SearchApi, private val searchDao: Se
 
     suspend fun refresh() {
         withContext(Dispatchers.IO) {
-            val users = searchApi.getSearchImgAsync().await()
-            searchDao.add(users)
+            val searchResult = searchApi.getSearchImgAsync().await()
+            searchDao.updateAll(searchResult.value)
         }
     }
 }

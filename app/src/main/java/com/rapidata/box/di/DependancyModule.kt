@@ -1,12 +1,16 @@
-package com.rapidata.box
+package com.rapidata.box.di
 
 import android.app.Application
 import androidx.room.Room
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
+import com.rapidata.BuildConfig
+import com.rapidata.box.data.BaseRepository
 import com.rapidata.box.database.AppDatabase
 import com.rapidata.box.database.SearchDao
+import com.rapidata.box.network.LoggingInterceptor
 import com.rapidata.box.network.SearchApi
 import com.rapidata.ui.SearchViewModel
 import okhttp3.Cache
@@ -16,6 +20,7 @@ import org.koin.android.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
 
 val viewModelModule = module {
     viewModel { SearchViewModel(get()) }
@@ -39,19 +44,20 @@ val netModule = module {
     fun provideHttpClient(cache: Cache): OkHttpClient {
         val okHttpClientBuilder = OkHttpClient.Builder()
             .cache(cache)
-
+            .addInterceptor(LoggingInterceptor())
         return okHttpClientBuilder.build()
     }
 
     fun provideGson(): Gson {
-        return GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create()
+        return GsonBuilder().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).setLenient().create()
     }
 
 
     fun provideRetrofit(factory: Gson, client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://api.github.com/")
+            .baseUrl(BuildConfig.API_URL)
             .addConverterFactory(GsonConverterFactory.create(factory))
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .client(client)
             .build()
     }
@@ -66,7 +72,7 @@ val netModule = module {
 val databaseModule = module {
 
     fun provideDatabase(application: Application): AppDatabase {
-        return Room.databaseBuilder(application, AppDatabase::class.java, "eds.database")
+        return Room.databaseBuilder(application, AppDatabase::class.java, "search_img.database")
             .fallbackToDestructiveMigration()
             .allowMainThreadQueries()
             .build()

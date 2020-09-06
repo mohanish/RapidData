@@ -1,22 +1,24 @@
 package com.rapidata.box.database
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import com.rapidata.box.apimodels.SearchData
+import androidx.room.*
+import com.rapidata.box.apimodels.SearchValue
 
 @Dao
 interface SearchDao {
 
-    companion object {
-        const val SEARCH_IMG_TABLE = "search_img"
+    @Query("SELECT * FROM search_img_db")
+    fun findAll(): LiveData<List<SearchValue>>
+
+    @Transaction
+    fun updateAll(searchResult: List<SearchValue>) {
+        deleteAll()
+        add(searchResult = searchResult)
     }
 
-    @Query("SELECT * FROM $SEARCH_IMG_TABLE")
-    fun findAll(): LiveData<List<SearchData>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun add(users: List<SearchData>)
+    fun add(searchResult: List<SearchValue>)
+
+    @Query("DELETE FROM search_img_db")
+    abstract fun deleteAll()
 }
